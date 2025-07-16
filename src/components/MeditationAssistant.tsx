@@ -57,7 +57,7 @@ export default function MeditationAssistant() {
   return (
     <div className="bg-orange-50 min-h-screen p-6 flex flex-col items-center">
       <h2 className="text-xl md:text-2xl font-semibold text-center animate-pulse text-orange-700 mb-6">
-        Does anyone have a question you would like to ask?
+        Does anyone have a question they would like to ask?
       </h2>
 
       <p className="text-center text-gray-700 mb-4">
