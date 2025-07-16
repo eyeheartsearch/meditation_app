@@ -5,13 +5,31 @@ import { Dialog } from '@headlessui/react';
 import { MicrophoneIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
+import { liteClient as algoliasearch } from 'algoliasearch/lite';
+import OpenAI from 'openai';
+import { extractYouTubeID } from '@/utils/extractYouTubeID';
+
+type HitWithMetadata = {
+  objectID: string;
+  title_normalized: string;
+  youtube_url: string;
+  ai_summary?: string;
+  ai_concepts?: string[];
+  ai_tags?: string[];
+};
 
 export default function MeditationAssistant() {
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, dangerouslyAllowBrowser: true });
+  const searchClient = algoliasearch(
+    process.env.NEXT_PUBLIC_ALGOLIA_APP_ID!,
+    process.env.NEXT_PUBLIC_ALGOLIA_SEARCH_KEY!
+  );
+  
+  const [results, setResults] = useState<HitWithMetadata[]>([]);
   const [question, setQuestion] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [justStopped, setJustStopped] = useState(false);
-
 
   const {
     transcript,
@@ -28,30 +46,74 @@ export default function MeditationAssistant() {
   }, [transcript, listening]);
 
   const handleMicClick = () => {
-  if (!browserSupportsSpeechRecognition) {
-    alert('Your browser does not support speech recognition.');
-    return;
-  }
+    if (!browserSupportsSpeechRecognition) {
+      alert('Your browser does not support speech recognition.');
+      return;
+    }
 
-  if (listening) {
-    SpeechRecognition.stopListening();
-    setJustStopped(true);
-    setTimeout(() => setJustStopped(false), 2000);
-  } else {
-    resetTranscript();
-    SpeechRecognition.startListening({ continuous: false, language: 'en-US' });
-  }
-};
+    if (listening) {
+      SpeechRecognition.stopListening();
+      setJustStopped(true);
+      setTimeout(() => setJustStopped(false), 2000);
+    } else {
+      resetTranscript();
+      SpeechRecognition.startListening({ continuous: false, language: 'en-US' });
+    }
+  };
 
-
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!question.trim()) return;
 
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    setResults([]);
+    try {
+      // Step 1: Ask GPT for key phrases
+      const gptRes = await openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'system',
+            content:
+              'You are a meditation assistant. Extract 3–5 short search phrases from the user\'s question. Respond ONLY with a JSON array.',
+          },
+          {
+            role: 'user',
+            content: question,
+          },
+        ],
+      });
+
+      const raw = gptRes.choices[0].message.content ?? '[]';
+      const phrases = JSON.parse(raw);
+
+      if (!Array.isArray(phrases) || phrases.length === 0) {
+        throw new Error('No valid phrases extracted.');
+      }
+
+      // Step 2: Run Algolia search using the lite client
+      const searchResults = await searchClient.search({
+        requests: [
+          {
+            indexName: process.env.NEXT_PUBLIC_ALGOLIA_INDEX_NAME!,
+            query: phrases.join(' '),
+            hitsPerPage: 3,
+          },
+        ],
+      });
+
+      const firstResult = searchResults.results[0];
+      if ('hits' in firstResult) {
+        setResults(firstResult.hits as HitWithMetadata[]);
+      } else {
+        setResults([]);
+      }
       setModalOpen(true);
-    }, 2000);
+    } catch (err) {
+      console.error(err);
+      alert('Something went wrong. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -65,33 +127,32 @@ export default function MeditationAssistant() {
       </p>
 
       {/* Mic Icon */}
-<div className="relative my-4">
-  <button
-    onClick={handleMicClick}
-    className={clsx(
-      'w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300',
-      'bg-white shadow-md border border-orange-300 relative z-10',
-      listening && 'ring-4 ring-orange-300 animate-pulse'
-    )}
-  >
-    <MicrophoneIcon className="w-10 h-10 text-orange-600" />
-  </button>
+      <div className="relative my-4">
+        <button
+          onClick={handleMicClick}
+          className={clsx(
+            'w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300',
+            'bg-white shadow-md border border-orange-300 relative z-10',
+            listening && 'ring-4 ring-orange-300 animate-pulse'
+          )}
+        >
+          <MicrophoneIcon className="w-10 h-10 text-orange-600" />
+        </button>
 
-  {/* Live transcript preview */}
-  {listening && (
-    <p className="mt-3 text-sm text-orange-700 text-center italic animate-fade-in-fast">
-      {transcript || 'Listening...'}
-    </p>
-  )}
+        {/* Live transcript preview */}
+        {listening && (
+          <p className="mt-3 text-sm text-orange-700 text-center italic animate-fade-in-fast">
+            {transcript || 'Listening...'}
+          </p>
+        )}
 
-  {/* Just stopped listening cue */}
-  {!listening && justStopped && (
-    <p className="mt-3 text-sm text-gray-500 text-center italic animate-fade-out">
-      Done listening
-    </p>
-  )}
-</div>
-
+        {/* Just stopped listening cue */}
+        {!listening && justStopped && (
+          <p className="mt-3 text-sm text-gray-500 text-center italic animate-fade-out">
+            Done listening
+          </p>
+        )}
+      </div>
 
       {/* Text input */}
       <textarea
@@ -115,47 +176,67 @@ export default function MeditationAssistant() {
         <div className="mt-6 animate-spin rounded-full h-10 w-10 border-t-2 border-orange-500 border-opacity-50" />
       )}
 
-      {/* Results modal */}
-      <Dialog open={modalOpen} onClose={() => setModalOpen(false)} className="relative z-50">
-        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-        <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="max-w-2xl w-full bg-white rounded-xl shadow-xl p-6 space-y-4">
-            <Dialog.Title className="text-xl font-semibold">
-              We found a few talks for you
-            </Dialog.Title>
-            <p className="text-sm text-gray-500">
-              Click a video or continue searching for the right recording.
-            </p>
+      {/* Results */}
+      {results.map((hit: HitWithMetadata, i: number) => {
+        const videoId = extractYouTubeID(hit.youtube_url);
+        const aiConcepts = hit.ai_concepts || [];
+        const aiTags = hit.ai_tags || [];
 
-            {/* Placeholder result cards */}
-            {['Recommended Talk', 'Related Talk 1', 'Related Talk 2'].map((title, i) => (
-              <div
-                key={i}
-                className="border p-4 rounded shadow-sm hover:shadow transition cursor-pointer"
+        return (
+          <div
+            key={hit.objectID}
+            className="border p-4 rounded shadow-sm hover:shadow transition cursor-pointer"
+          >
+            {videoId && (
+              <a
+                href={`https://www.youtube.com/embed/${videoId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mb-2 block"
               >
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium">{title}</h3>
-                  {i === 0 && (
-                    <span className="ml-2 inline-block bg-orange-200 text-orange-800 text-xs font-semibold px-2 py-0.5 rounded-full">
-                      Recommended
-                    </span>
-                  )}
-                </div>
-                <p className="text-sm text-gray-600 mt-1">Short summary of the talk...</p>
-              </div>
-            ))}
+                <img
+                  src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
+                  alt={hit.title_normalized}
+                  className="h-auto w-full rounded"
+                />
+              </a>
+            )}
 
-            <div className="flex justify-end">
-              <button
-                onClick={() => setModalOpen(false)}
-                className="text-sm text-orange-600 hover:underline"
-              >
-                Close
-              </button>
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-medium">{hit.title_normalized}</h3>
+              {i === 0 && (
+                <span className="ml-2 inline-block bg-orange-200 text-orange-800 text-xs font-semibold px-2 py-0.5 rounded-full">
+                  Recommended
+                </span>
+              )}
             </div>
-          </Dialog.Panel>
-        </div>
-      </Dialog>
+
+            <p className="text-sm text-gray-600 mt-1">{hit.ai_summary || 'No summary available.'}</p>
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              {aiConcepts.map((concept: string, idx: number) => (
+                <span
+                  key={`concept-${idx}`}
+                  className="rounded-full bg-orange-200 px-3 py-1 text-xs font-medium text-orange-800"
+                >
+                  {concept}
+                </span>
+              ))}
+            </div>
+
+            <div className="mt-2 flex flex-wrap gap-2">
+              {aiTags.map((tag: string, idx: number) => (
+                <span
+                  key={`tag-${idx}`}
+                  className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-medium text-indigo-700"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
