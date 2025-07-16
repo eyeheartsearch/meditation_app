@@ -20,7 +20,8 @@
     "react-instantsearch-core": "^7.14.0",
     "react-instantsearch-dom": "^6.40.4",
     "react-instantsearch-hooks": "^6.47.3",
-    "react-instantsearch-nextjs": "^1.0.0"
+    "react-instantsearch-nextjs": "^1.0.0",
+    "react-speech-recognition": "^4.0.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
