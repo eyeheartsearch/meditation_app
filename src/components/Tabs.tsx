@@ -18,6 +18,18 @@ export default function Tabs({ activeTab, setActiveTab }: TabsProps) {
       >
         Search
       </button>
+      <button
+        className={`rounded px-4 py-2 ${activeTab === 'glossary' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+        onClick={() => setActiveTab('glossary')}
+      >
+        Glossary
+      </button>
+      <button
+        className={`rounded px-4 py-2 ${activeTab === 'about' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+        onClick={() => setActiveTab('about')}
+      >
+        About
+      </button>
     </div>
   );
 }

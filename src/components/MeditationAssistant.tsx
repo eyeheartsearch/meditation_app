@@ -6,7 +6,6 @@ import { MicrophoneIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import { liteClient as algoliasearch } from 'algoliasearch/lite';
-import OpenAI from 'openai';
 import { extractYouTubeID } from '@/utils/extractYouTubeID';
 
 type HitWithMetadata = {
@@ -19,7 +18,6 @@ type HitWithMetadata = {
 };
 
 export default function MeditationAssistant() {
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, dangerouslyAllowBrowser: true });
   const searchClient = algoliasearch(
     process.env.NEXT_PUBLIC_ALGOLIA_APP_ID!,
     process.env.NEXT_PUBLIC_ALGOLIA_SEARCH_KEY!
@@ -67,28 +65,22 @@ export default function MeditationAssistant() {
     setIsLoading(true);
     setResults([]);
     try {
-      // Step 1: Ask GPT for key phrases
-      const gptRes = await openai.chat.completions.create({
-        model: 'gpt-4o',
-        messages: [
-          {
-            role: 'system',
-            content:
-              'You are a meditation assistant. Extract 3–5 short search phrases from the user\'s question. Respond ONLY with a JSON array.',
-          },
-          {
-            role: 'user',
-            content: question,
-          },
-        ],
+      // Step 1: Call API route to extract phrases
+      const response = await fetch('/api/extract-phrases', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ question }),
       });
 
-      const raw = gptRes.choices[0].message.content ?? '[]';
-      const phrases = JSON.parse(raw);
-
-      if (!Array.isArray(phrases) || phrases.length === 0) {
-        throw new Error('No valid phrases extracted.');
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('API Error:', errorData);
+        throw new Error(`Failed to extract phrases: ${errorData.error || response.statusText}`);
       }
+
+      const { phrases } = await response.json();
 
       // Step 2: Run Algolia search using the lite client
       const searchResults = await searchClient.search({
@@ -176,67 +168,92 @@ export default function MeditationAssistant() {
         <div className="mt-6 animate-spin rounded-full h-10 w-10 border-t-2 border-orange-500 border-opacity-50" />
       )}
 
-      {/* Results */}
-      {results.map((hit: HitWithMetadata, i: number) => {
-        const videoId = extractYouTubeID(hit.youtube_url);
-        const aiConcepts = hit.ai_concepts || [];
-        const aiTags = hit.ai_tags || [];
-
-        return (
-          <div
-            key={hit.objectID}
-            className="border p-4 rounded shadow-sm hover:shadow transition cursor-pointer"
-          >
-            {videoId && (
-              <a
-                href={`https://www.youtube.com/embed/${videoId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mb-2 block"
+      {/* Results Modal */}
+      <Dialog open={modalOpen} onClose={() => setModalOpen(false)} className="relative z-50">
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="mx-auto max-w-6xl w-full bg-white rounded-lg p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <Dialog.Title className="text-2xl font-bold text-gray-900">
+                  We found a few talks for you
+                </Dialog.Title>
+                <p className="text-gray-600 mt-1">
+                  Click a video or continue searching for the right recording.
+                </p>
+              </div>
+              <button
+                onClick={() => setModalOpen(false)}
+                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
               >
-                <img
-                  src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
-                  alt={hit.title_normalized}
-                  className="h-auto w-full rounded"
-                />
-              </a>
-            )}
-
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-medium">{hit.title_normalized}</h3>
-              {i === 0 && (
-                <span className="ml-2 inline-block bg-orange-200 text-orange-800 text-xs font-semibold px-2 py-0.5 rounded-full">
-                  Recommended
-                </span>
-              )}
+                Close
+              </button>
             </div>
 
-            <p className="text-sm text-gray-600 mt-1">{hit.ai_summary || 'No summary available.'}</p>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+              {results.map((hit: HitWithMetadata, i: number) => {
+                const videoId = extractYouTubeID(hit.youtube_url);
+                const aiConcepts = hit.ai_concepts || [];
+                const aiTags = hit.ai_tags || [];
 
-            <div className="mt-3 flex flex-wrap gap-2">
-              {aiConcepts.map((concept: string, idx: number) => (
-                <span
-                  key={`concept-${idx}`}
-                  className="rounded-full bg-orange-200 px-3 py-1 text-xs font-medium text-orange-800"
-                >
-                  {concept}
-                </span>
-              ))}
-            </div>
+                return (
+                  <div key={hit.objectID} className="rounded border p-4 shadow hover:shadow-lg transition">
+                    {videoId && (
+                      <a
+                        href={`https://www.youtube.com/embed/${videoId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mb-2 block"
+                      >
+                        <img
+                          src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
+                          alt={hit.title_normalized}
+                          className="h-auto w-full rounded"
+                        />
+                      </a>
+                    )}
 
-            <div className="mt-2 flex flex-wrap gap-2">
-              {aiTags.map((tag: string, idx: number) => (
-                <span
-                  key={`tag-${idx}`}
-                  className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-medium text-indigo-700"
-                >
-                  {tag}
-                </span>
-              ))}
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-semibold text-lg flex-1">{hit.title_normalized}</h3>
+                      {i === 0 && (
+                        <span className="ml-2 inline-block bg-orange-200 text-orange-800 text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0">
+                          Recommended
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="text-sm text-gray-600 mb-3">{hit.ai_summary || 'No description available.'}</p>
+
+                    {/* AI Concepts: Orange / Saffron badges */}
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {aiConcepts.map((concept: string, idx: number) => (
+                        <span
+                          key={`concept-${idx}`}
+                          className="rounded-full bg-orange-200 px-3 py-1 text-xs font-medium text-orange-800"
+                        >
+                          {concept}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* AI Tags: Blue / Indigo badges */}
+                    <div className="flex flex-wrap gap-2">
+                      {aiTags.map((tag: string, idx: number) => (
+                        <span
+                          key={`tag-${idx}`}
+                          className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-medium text-indigo-700"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          </div>
-        );
-      })}
+          </Dialog.Panel>
+        </div>
+      </Dialog>
     </div>
   );
 }

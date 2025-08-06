@@ -1,7 +1,7 @@
 'use client';
 
 import { InstantSearchNext } from 'react-instantsearch-nextjs';
-import { SearchBox, useHits, RefinementList } from 'react-instantsearch';
+import { SearchBox, useHits, RefinementList, Highlight, Stats } from 'react-instantsearch';
 import { liteClient as algoliasearch } from 'algoliasearch/lite';
 import { Disclosure } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
@@ -165,12 +165,21 @@ export default function SearchResults() {
             placeholder="Search for themes, spiritual concepts, or keywords from Stuart's past talks..."
           />
 
+          <Stats classNames={{ root: 'mb-4 text-sm text-gray-600' }} />
+
           <CustomHits />
         </section>
       </div>
     </InstantSearchNext>
   );
 }
+
+<Stats
+  classNames={{
+    root: 'mb-4 text-sm text-gray-600',
+  }}
+/>
+
 
 function CustomHits() {
   const { hits } = useHits();
@@ -198,8 +207,14 @@ function CustomHits() {
                 />
               </a>
             )}
-            <h3 className="mt-2 font-semibold">{hit.title_normalized}</h3>
-            <p className="text-sm text-gray-600">{hit.ai_summary || 'No description available.'}</p>
+            <h3 className="mt-2 font-semibold">
+  <Highlight attribute="title_normalized" hit={hit} />
+</h3>
+
+            <p className="text-sm text-gray-600">
+  <Highlight attribute="ai_summary" hit={hit} />
+</p>
+
 
             {/* AI Concepts: Orange / Saffron badges */}
             <div className="mt-3 flex flex-wrap gap-2">
