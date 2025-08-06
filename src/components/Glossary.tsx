@@ -86,18 +86,18 @@ export default function Glossary() {
             {talks.map((talk) => (
               <div
                 key={talk.objectID}
-                className="border-b border-gray-200 py-2 hover:bg-gray-50 transition-colors"
+                className="border-b border-gray-200 py-3 hover:bg-gray-50 transition-colors"
               >
-                <div className="flex items-start justify-between w-full">
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between w-full">
                   <button
                     onClick={() => handleDateClick(talk.youtube_url)}
-                    className="text-left group flex-shrink-0"
+                    className="text-left group mb-2 md:mb-0 md:flex-shrink-0"
                   >
                     <span className="text-orange-600 hover:text-orange-700 font-medium group-hover:underline">
                       {talk.title_normalized}
                     </span>
                   </button>
-                  <div className="ml-4 text-gray-600 text-sm flex-1">
+                  <div className="md:ml-4 text-gray-600 text-sm md:flex-1">
                     {talk.ai_summary || 'No summary available'}
                   </div>
                 </div>
