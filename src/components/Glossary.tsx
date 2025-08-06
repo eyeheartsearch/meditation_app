@@ -68,7 +68,7 @@ export default function Glossary() {
             All Talks Glossary
           </h1>
           <p className="text-gray-600 mb-2">
-            All talks listed chronologically. Hover for summary, click to watch.
+            All talks listed chronologically. Click to watch.
           </p>
           {totalHits > 0 && (
             <p className="text-sm text-gray-500">
