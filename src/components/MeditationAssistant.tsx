@@ -65,6 +65,8 @@ export default function MeditationAssistant() {
     setIsLoading(true);
     setResults([]);
     try {
+      console.log('Starting wisdom search for:', question);
+      
       // Step 1: Call API route to extract phrases
       const response = await fetch('/api/extract-phrases', {
         method: 'POST',
@@ -74,13 +76,16 @@ export default function MeditationAssistant() {
         body: JSON.stringify({ question }),
       });
 
+      console.log('API Response status:', response.status);
+
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({ error: 'Unknown API error' }));
         console.error('API Error:', errorData);
         throw new Error(`Failed to extract phrases: ${errorData.error || response.statusText}`);
       }
 
       const { phrases } = await response.json();
+      console.log('Extracted phrases:', phrases);
 
       // Step 2: Run Algolia search using the lite client
       const searchResults = await searchClient.search({
@@ -101,74 +106,84 @@ export default function MeditationAssistant() {
       }
       setModalOpen(true);
     } catch (err) {
-      console.error(err);
-      alert('Something went wrong. Please try again.');
+      console.error('Wisdom search error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      alert(`We encountered an issue while searching for wisdom: ${errorMessage}. Please check that your API keys are configured and try again.`);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="bg-orange-50 min-h-screen p-6 flex flex-col items-center">
-      <h2 className="text-xl md:text-2xl font-semibold text-center animate-pulse text-orange-700 mb-6">
-        Does anyone have a question they would like to ask?
-      </h2>
+    <div className="min-h-screen p-6 flex flex-col items-center bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
+      <div className="max-w-4xl mx-auto w-full text-center">
+        <h2 className="text-2xl md:text-3xl font-serif text-amber-900 mb-6 animate-sacred-breathe">
+          What wisdom do you seek today?
+        </h2>
 
-      <p className="text-center text-gray-700 mb-4">
-        Press the microphone to dictate your question or type your question. We'll do our very best to find the most relevant talk.
-      </p>
+        <p className="text-lg text-amber-700 mb-8 max-w-2xl mx-auto leading-relaxed">
+          Share your question through voice or words. Let the teachings guide you to understanding.
+        </p>
 
-      {/* Mic Icon */}
-      <div className="relative my-4">
-        <button
-          onClick={handleMicClick}
-          className={clsx(
-            'w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300',
-            'bg-white shadow-md border border-orange-300 relative z-10',
-            listening && 'ring-4 ring-orange-300 animate-pulse'
+        {/* Sacred Microphone */}
+        <div className="relative my-8">
+          <button
+            onClick={handleMicClick}
+            className={clsx(
+              'w-24 h-24 rounded-full flex items-center justify-center transition-all duration-500 transform',
+              'bg-gradient-to-br from-amber-100 to-orange-200 shadow-xl border-2 border-amber-300 sacred-glow relative z-10',
+              listening && 'ring-4 ring-amber-400 animate-gentle-pulse scale-110',
+              !listening && 'hover:scale-105 hover:shadow-2xl animate-sacred-breathe'
+            )}
+          >
+            <MicrophoneIcon className="w-12 h-12 text-amber-700" />
+          </button>
+
+          {/* Sacred listening state */}
+          {listening && (
+            <p className="mt-4 text-amber-700 text-center italic font-serif animate-gentle-pulse">
+              {transcript || 'Listening with reverence...'}
+            </p>
           )}
+
+          {/* Sacred completion state */}
+          {!listening && justStopped && (
+            <p className="mt-4 text-amber-600 text-center italic font-serif opacity-80">
+              Your words have been received
+            </p>
+          )}
+        </div>
+
+        {/* Sacred Text Input */}
+        <div className="w-full max-w-2xl mt-8">
+          <textarea
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            rows={4}
+            placeholder="Share your seeking with us..."
+            className="w-full p-6 border-2 border-amber-200 rounded-2xl shadow-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-400 focus:outline-none bg-white/90 backdrop-blur-sm font-serif text-amber-900 placeholder-amber-500 transition-all duration-300"
+          />
+        </div>
+
+        <button
+          onClick={handleSubmit}
+          disabled={!question.trim()}
+          className="mt-6 px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-serif font-medium rounded-2xl shadow-lg hover:from-amber-600 hover:to-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 sacred-glow"
         >
-          <MicrophoneIcon className="w-10 h-10 text-orange-600" />
+          Seek Wisdom
         </button>
 
-        {/* Live transcript preview */}
-        {listening && (
-          <p className="mt-3 text-sm text-orange-700 text-center italic animate-fade-in-fast">
-            {transcript || 'Listening...'}
-          </p>
+        {/* Sacred Loading */}
+        {isLoading && (
+          <div className="mt-8 flex flex-col items-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-amber-500 sacred-glow" />
+            <p className="mt-4 text-amber-700 font-serif italic animate-sacred-breathe">
+              Searching the teachings...
+            </p>
+          </div>
         )}
 
-        {/* Just stopped listening cue */}
-        {!listening && justStopped && (
-          <p className="mt-3 text-sm text-gray-500 text-center italic animate-fade-out">
-            Done listening
-          </p>
-        )}
-      </div>
-
-      {/* Text input */}
-      <textarea
-        value={question}
-        onChange={(e) => setQuestion(e.target.value)}
-        rows={4}
-        placeholder="Type your question here..."
-        className="mt-6 w-full max-w-xl p-4 border border-gray-300 rounded-lg shadow-sm focus:ring-orange-300 focus:outline-none bg-white"
-      />
-
-      <button
-        onClick={handleSubmit}
-        disabled={!question.trim()}
-        className="mt-4 px-6 py-3 bg-orange-600 text-white font-medium rounded-lg shadow hover:bg-orange-700 transition"
-      >
-        Search
-      </button>
-
-      {/* Spinner */}
-      {isLoading && (
-        <div className="mt-6 animate-spin rounded-full h-10 w-10 border-t-2 border-orange-500 border-opacity-50" />
-      )}
-
-      {/* Results Modal */}
+        {/* Results Modal */}
       <Dialog open={modalOpen} onClose={() => setModalOpen(false)} className="relative z-50">
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
@@ -254,6 +269,7 @@ export default function MeditationAssistant() {
           </Dialog.Panel>
         </div>
       </Dialog>
+      </div>
     </div>
   );
 }

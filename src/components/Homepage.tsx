@@ -59,7 +59,7 @@ export default function Homepage({ onNavigate }: HomepageProps) {
         {/* Header with Logo */}
         <header className="text-center mb-16">
           <div className="flex justify-center items-center mb-8">
-            <div className="bg-gradient-to-br from-amber-100 to-orange-200 p-4 rounded-full shadow-lg">
+            <div className="bg-gradient-to-br from-amber-100 to-orange-200 p-4 rounded-full shadow-lg sacred-glow animate-lotus-breathe">
               <Image
                 src="/lotus.png"
                 alt="Lotus - Symbol of Spiritual Awakening"
@@ -87,7 +87,7 @@ export default function Homepage({ onNavigate }: HomepageProps) {
         {/* Hero Image Section */}
         <div className="text-center mb-16">
           <div className="relative inline-block">
-            <div className="w-64 h-64 md:w-80 md:h-80 mx-auto rounded-full overflow-hidden shadow-2xl ring-8 ring-amber-100/50">
+            <div className="w-64 h-64 md:w-80 md:h-80 mx-auto rounded-full overflow-hidden shadow-2xl ring-8 ring-amber-100/50 animate-sacred-breathe">
               <Image
                 src="/stuart.jpg"
                 alt="Stuart Perrin in meditation"
@@ -96,8 +96,8 @@ export default function Homepage({ onNavigate }: HomepageProps) {
                 className="w-full h-full object-cover"
               />
             </div>
-            {/* Breathing animation circle */}
-            <div className="absolute inset-0 rounded-full border-2 border-amber-300/30 animate-pulse"></div>
+            {/* Sacred breathing aura */}
+            <div className="absolute inset-0 rounded-full border-2 border-amber-300/40 animate-gentle-pulse"></div>
           </div>
         </div>
 
