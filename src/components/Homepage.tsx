@@ -9,7 +9,7 @@ interface HomepageProps {
 
 export default function Homepage({ onNavigate }: HomepageProps) {
   const [currentQuote] = useState({
-    text: "The practice of meditation is not about becoming perfect; it's about becoming present. In that presence, we find the infinite depth of who we truly are.",
+    text: "The practice of meditation is not about becoming perfect; it&rsquo;s about becoming present. In that presence, we find the infinite depth of who we truly are.",
     session: "Evening Meditation • October 2024"
   });
 
@@ -137,11 +137,11 @@ export default function Homepage({ onNavigate }: HomepageProps) {
         <section className="max-w-4xl mx-auto">
           <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 md:p-12 shadow-xl border border-amber-100">
             <h3 className="text-2xl md:text-3xl font-serif text-center text-amber-900 mb-8">
-              Today's Reflection
+              Today&rsquo;s Reflection
             </h3>
             
             <blockquote className="text-center">
-              <div className="text-6xl text-amber-300 mb-4 font-serif leading-none">"</div>
+              <div className="text-6xl text-amber-300 mb-4 font-serif leading-none">&ldquo;</div>
               <p className="text-lg md:text-xl text-gray-700 italic leading-relaxed mb-6 font-serif">
                 {currentQuote.text}
               </p>

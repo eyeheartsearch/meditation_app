@@ -5,6 +5,24 @@ import { SearchBox, useHits, RefinementList, Highlight, Stats } from 'react-inst
 import { liteClient as algoliasearch } from 'algoliasearch/lite';
 import { Disclosure } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
+import Image from 'next/image';
+
+type HitType = {
+  objectID: string;
+  title_normalized: string;
+  youtube_url: string;
+  ai_summary?: string;
+  ai_concepts?: string[];
+  ai_tags?: string[];
+  [key: string]: unknown;
+};
+
+type FacetItem = {
+  label: string;
+  value: string;
+  count: number;
+  isRefined: boolean;
+};
 
 const searchClient = algoliasearch(
   process.env.NEXT_PUBLIC_ALGOLIA_APP_ID!,
@@ -111,7 +129,7 @@ export default function SearchResults() {
                 label: 'US or EU',
                 attribute: 'us_or_eu',
                 searchable: false,
-                transformItems: (items: any[]) =>
+                transformItems: (items: FacetItem[]) =>
                   items.map((item) => ({
                     ...item,
                     label: item.label === 'us' ? 'US Class' : 'Europe Class',
@@ -174,19 +192,12 @@ export default function SearchResults() {
   );
 }
 
-<Stats
-  classNames={{
-    root: 'mb-4 text-sm text-gray-600',
-  }}
-/>
-
-
 function CustomHits() {
   const { hits } = useHits();
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-      {hits.map((hit: any) => {
+      {hits.map((hit) => {
         const videoId = extractYouTubeID(hit.youtube_url);
         const aiConcepts = hit.ai_concepts || [];
         const aiTags = hit.ai_tags || [];
@@ -200,21 +211,22 @@ function CustomHits() {
                 rel="noopener noreferrer"
                 className="mb-2 block"
               >
-                <img
+                <Image
                   src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
                   alt={hit.title_normalized}
+                  width={320}
+                  height={180}
                   className="h-auto w-full rounded"
                 />
               </a>
             )}
             <h3 className="mt-2 font-semibold">
-  <Highlight attribute="title_normalized" hit={hit} />
-</h3>
+              <Highlight attribute="title_normalized" hit={hit} />
+            </h3>
 
             <p className="text-sm text-gray-600">
-  <Highlight attribute="ai_summary" hit={hit} />
-</p>
-
+              <Highlight attribute="ai_summary" hit={hit} />
+            </p>
 
             {/* AI Concepts: Orange / Saffron badges */}
             <div className="mt-3 flex flex-wrap gap-2">
@@ -255,165 +267,3 @@ function extractYouTubeID(url: string): string | null {
     return null;
   }
 }
-
-// 'use client';
-
-// import { InstantSearchNext } from 'react-instantsearch-nextjs';
-// import { SearchBox, useHits, RefinementList } from 'react-instantsearch';
-// import { liteClient as algoliasearch } from 'algoliasearch/lite';
-// // import { Disclosure } from '@headlessui/react';
-// // import { ChevronDownIcon } from '@heroicons/react/solid';
-
-// const searchClient = algoliasearch(
-//   process.env.NEXT_PUBLIC_ALGOLIA_APP_ID!,
-//   process.env.NEXT_PUBLIC_ALGOLIA_SEARCH_KEY!
-// );
-
-// const indexName = process.env.NEXT_PUBLIC_ALGOLIA_INDEX_NAME!;
-
-// export default function SearchResults() {
-//   return (
-//     <InstantSearchNext searchClient={searchClient} indexName={indexName} routing>
-//       <div className="flex flex-col md:flex-row gap-6 p-4">
-//         {/* Facets sidebar */}
-//         <aside className="w-full md:w-1/4 flex-shrink-0 space-y-6">
-//   {/* Concepts */}
-//   <div>
-//     <h2 className="text-lg font-semibold mb-2">Spiritual Concepts</h2>
-//     <RefinementList
-//       attribute="ai_concepts"
-//       searchable={true}
-//       showMore={true}
-//       showMoreLimit={30}
-//       searchablePlaceholder="Search concepts"
-//       classNames={{
-//         root: 'space-y-2',
-//         label: 'flex justify-between items-center text-sm font-medium text-gray-800',
-//         checkbox: 'mr-2',
-//         count:
-//           'ml-2 inline-block bg-orange-100 text-orange-700 text-xs font-semibold px-2 py-0.5 rounded-full',
-//         list: 'space-y-2',
-//         item: 'flex items-center justify-between',
-//         selectedItem: 'font-semibold',
-//         searchBox:
-//           'w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white shadow-sm focus:ring-1 focus:ring-indigo-300 focus:outline-none',
-//       }}
-//     />
-//   </div>
-
-//   {/* Tags */}
-//   <div>
-//     <h2 className="text-lg font-semibold mb-2">Tags</h2>
-//     <RefinementList
-//       attribute="ai_tags"
-//       searchable={true}
-//       showMore={true}
-//       showMoreLimit={30}
-//       searchablePlaceholder="Search tags"
-//       classNames={{
-//         root: 'space-y-2',
-//         label: 'flex justify-between items-center text-sm font-medium text-gray-800',
-//         checkbox: 'mr-2',
-//         count:
-//           'ml-2 inline-block bg-indigo-100 text-indigo-700 text-xs font-semibold px-2 py-0.5 rounded-full',
-//         list: 'space-y-2',
-//         item: 'flex items-center justify-between',
-//         selectedItem: 'font-semibold',
-//         searchBox:
-//           'w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white shadow-sm focus:ring-1 focus:ring-orange-300 focus:outline-none',
-//       }}
-//     />
-//   </div>
-// </aside>
-
-//         {/* Hits and search box */}
-//         <section className="w-full md:w-3/4">
-//           <SearchBox
-//   classNames={{
-//     root: 'mb-6',
-//     form: 'relative',
-//     input:
-//       'w-full border border-gray-300 rounded-lg px-4 py-3 text-base placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-300 bg-white shadow-sm',
-//     submit: 'hidden',
-//     reset: 'hidden',
-//   }}
-//   placeholder="Search for themes, spiritual concepts, or keywords from Stuart's past talks..."
-// />
-
-//           <CustomHits />
-//         </section>
-//       </div>
-//     </InstantSearchNext>
-//   );
-// }
-
-// function CustomHits() {
-//   const { hits } = useHits();
-
-//   return (
-//     <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-//       {hits.map((hit: any) => {
-//         const videoId = extractYouTubeID(hit.youtube_url);
-//         const aiConcepts = hit.ai_concepts || [];
-//         const aiTags = hit.ai_tags || [];
-
-//         return (
-//           <div key={hit.objectID} className="p-4 border rounded shadow">
-//             {videoId && (
-//               <a
-//                 href={`https://www.youtube.com/embed/${videoId}`}
-//                 target="_blank"
-//                 rel="noopener noreferrer"
-//                 className="block mb-2"
-//               >
-//                 <img
-//                   src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
-//                   alt={hit.title_normalized}
-//                   className="w-full h-auto rounded"
-//                 />
-//               </a>
-//             )}
-//             <h3 className="font-semibold mt-2">{hit.title_normalized}</h3>
-//             <p className="text-sm text-gray-600">
-//               {hit.ai_summary || 'No description available.'}
-//             </p>
-
-//             {/* AI Concepts: Orange / Saffron badges */}
-//             <div className="flex flex-wrap mt-3 gap-2">
-//               {aiConcepts.map((concept: string, idx: number) => (
-//                 <span
-//                   key={`concept-${idx}`}
-//                   className="bg-orange-200 text-orange-800 text-xs font-medium px-3 py-1 rounded-full"
-//                 >
-//                   {concept}
-//                 </span>
-//               ))}
-//             </div>
-
-//             {/* AI Tags: Blue / Indigo badges */}
-//             <div className="flex flex-wrap mt-2 gap-2">
-//               {aiTags.map((tag: string, idx: number) => (
-//                 <span
-//                   key={`tag-${idx}`}
-//                   className="bg-indigo-100 text-indigo-700 text-xs font-medium px-3 py-1 rounded-full"
-//                 >
-//                   {tag}
-//                 </span>
-//               ))}
-//             </div>
-//           </div>
-//         );
-//       })}
-//     </div>
-//   );
-// }
-
-// // Utility function to extract YouTube video ID
-// function extractYouTubeID(url: string): string | null {
-//   try {
-//     const parsed = new URL(url);
-//     return parsed.searchParams.get('v');
-//   } catch {
-//     return null;
-//   }
-// }

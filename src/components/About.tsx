@@ -33,13 +33,13 @@ export default function About() {
               </h2>
               <div className="prose prose-gray max-w-none">
                 <p className="mb-4">
-                  Swami Rudrananda, affectionately known as "Rudi," was a pioneering spiritual teacher 
+                  Swami Rudrananda, affectionately known as &ldquo;Rudi,&rdquo; was a pioneering spiritual teacher 
                   who developed a unique meditation practice centered around the transformative power 
                   of breath work and inner surrender. Born Albert Rudolph, he became one of the most 
                   influential American-born spiritual teachers of the 20th century.
                 </p>
                 <p className="mb-4">
-                  Rudi developed the revolutionary "double breathing" exercise, a powerful technique 
+                  Rudi developed the revolutionary &ldquo;double breathing&rdquo; exercise, a powerful technique 
                   that combines conscious breathing with deep meditative awareness to create profound 
                   spiritual transformation. This practice became the cornerstone of his teachings, 
                   helping countless students access deeper states of consciousness and inner peace.
@@ -51,7 +51,7 @@ export default function About() {
                   stillness through breath awareness.
                 </p>
                 <p>
-                  Tragically, Rudi's physical journey ended in a plane crash in the mountains, 
+                  Tragically, Rudi&rsquo;s physical journey ended in a plane crash in the mountains, 
                   but his teachings and the profound impact he had on his students continue to 
                   this day. Among his closest disciples was Stuart Perrin, who was with him 
                   during those final moments and would carry forward the lineage.
@@ -79,9 +79,9 @@ export default function About() {
               </h2>
               <div className="prose prose-gray max-w-none">
                 <p className="mb-4">
-                  Stuart Perrin, one of Rudi's closest students and spiritual heirs, has dedicated 
+                  Stuart Perrin, one of Rudi&rsquo;s closest students and spiritual heirs, has dedicated 
                   over 50 years to teaching and preserving the profound meditation practices he 
-                  learned from his master. Having been present during Rudi's final moments, Stuart 
+                  learned from his master. Having been present during Rudi&rsquo;s final moments, Stuart 
                   carries both the deep responsibility and the authentic transmission of this 
                   powerful spiritual lineage.
                 </p>
@@ -93,7 +93,7 @@ export default function About() {
                   and their everyday lives.
                 </p>
                 <p className="mb-4">
-                  Stuart's life has been one of adventure and spiritual exploration, always 
+                  Stuart&rsquo;s life has been one of adventure and spiritual exploration, always 
                   seeking to deepen his own practice while sharing these timeless teachings 
                   with others. His approach emphasizes the importance of consistent practice, 
                   surrender, and finding the extraordinary within the ordinary moments of life.

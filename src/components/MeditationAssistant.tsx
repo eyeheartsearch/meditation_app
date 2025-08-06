@@ -7,6 +7,7 @@ import clsx from 'clsx';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import { liteClient as algoliasearch } from 'algoliasearch/lite';
 import { extractYouTubeID } from '@/utils/extractYouTubeID';
+import Image from 'next/image';
 
 type HitWithMetadata = {
   objectID: string;
@@ -220,9 +221,11 @@ export default function MeditationAssistant() {
                         rel="noopener noreferrer"
                         className="mb-2 block"
                       >
-                        <img
+                        <Image
                           src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
                           alt={hit.title_normalized}
+                          width={320}
+                          height={180}
                           className="h-auto w-full rounded"
                         />
                       </a>
