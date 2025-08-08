@@ -28,6 +28,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'The Teachings of Stuart Perrin',
   description: 'A digital sanctuary preserving 50 years of spiritual wisdom and meditation guidance',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+  },
 };
 
 export default function RootLayout({
