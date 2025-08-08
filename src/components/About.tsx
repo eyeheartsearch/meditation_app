@@ -98,7 +98,7 @@ export default function About() {
                 <p className="mb-4">
                   When COVID-19 forced changes to traditional in-person teaching, Stuart discovered
                   Zoom as a powerful medium to reach his global community of students. What began as
-                  necessity became a blessing—Stuart now teaches classes almost every day of the
+                  necessity became a blessing. Stuart now teaches classes almost every day of the
                   week, connecting with students from around the world who gather to meditate
                   together and receive his guidance.
                 </p>

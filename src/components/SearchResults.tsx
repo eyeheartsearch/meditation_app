@@ -5,6 +5,7 @@ import { SearchBox, useHits, RefinementList, Highlight, Stats } from 'react-inst
 import { liteClient as algoliasearch } from 'algoliasearch/lite';
 import { Disclosure } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import Image from 'next/image';
 
 type HitType = {
@@ -171,17 +172,22 @@ export default function SearchResults() {
 
         {/* Hits and search box */}
         <section className="w-full md:w-3/4">
-          <SearchBox
-            classNames={{
-              root: 'mb-6',
-              form: 'relative',
-              input:
-                'w-full border border-gray-300 rounded-lg px-4 py-3 text-base placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-300 bg-white shadow-sm',
-              submit: 'hidden',
-              reset: 'hidden',
-            }}
-            placeholder="Search for themes, spiritual concepts, or keywords from Stuart's past talks..."
-          />
+          <div className="relative mb-6">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+              <MagnifyingGlassIcon className="h-5 w-5 text-amber-600" />
+            </div>
+            <SearchBox
+              classNames={{
+                root: '',
+                form: 'relative',
+                input:
+                  'w-full pl-12 pr-4 py-4 text-base md:text-lg border-2 border-amber-300 rounded-xl placeholder-amber-500 focus:outline-none focus:ring-3 focus:ring-amber-400 focus:border-amber-500 bg-white shadow-lg hover:shadow-xl transition-all duration-300',
+                submit: 'hidden',
+                reset: 'hidden',
+              }}
+              placeholder="🔍 Search teachings, concepts, or wisdom..."
+            />
+          </div>
 
           <Stats classNames={{ root: 'mb-4 text-sm text-gray-600' }} />
 
