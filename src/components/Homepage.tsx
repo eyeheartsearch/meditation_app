@@ -15,17 +15,6 @@ export default function Homepage({ onNavigate }: HomepageProps) {
 
   const gateways = [
     {
-      id: 'assistant',
-      title: 'Seek Guidance',
-      description:
-        'This tool can be used after meditations. Ask questions freely and connect to the teachings.',
-      icon: '🪷',
-      gradient: 'from-amber-100 to-orange-100',
-      hoverGradient: 'from-amber-200 to-orange-200',
-      borderColor: 'border-amber-200',
-      textColor: 'text-amber-900',
-    },
-    {
       id: 'search',
       title: 'Explore Teachings',
       description: 'Search through years of wisdom and guidance',
@@ -44,6 +33,17 @@ export default function Homepage({ onNavigate }: HomepageProps) {
       hoverGradient: 'from-orange-200 to-red-200',
       borderColor: 'border-orange-200',
       textColor: 'text-orange-900',
+    },
+    {
+      id: 'assistant',
+      title: 'Seek Guidance',
+      description:
+        'This tool can be used after meditations. Ask questions freely and connect to the teachings.',
+      icon: '🪷',
+      gradient: 'from-amber-100 to-orange-100',
+      hoverGradient: 'from-amber-200 to-orange-200',
+      borderColor: 'border-amber-200',
+      textColor: 'text-amber-900',
     },
   ];
 
